@@ -5,22 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:model_viewer_plus/model_viewer_plus.dart';
 
-Future<Weather> fetchWeather(city_id) async {
-  final response = await http.get(Uri.parse(
-      'http://api.openweathermap.org/data/2.5/forecast?id=$city_id&APPID=97f9f992f1fa553711ac1cc06e46524f'));
-
-  if (response.statusCode == 200) {
-    // If the server did return a 200 OK response,
-    // then parse the JSON.
-    final weather = Weather.fromJson(jsonDecode(response.body));
-    return weather;
-  } else {
-    // If the server did not return a 200 OK response,
-    // then throw an exception.
-    throw Exception('Failed to load weather');
-  }
-}
-
 class Weather {
   final double temp;
   final String status;
@@ -117,12 +101,12 @@ class _CitiesScreenState extends State<CitiesScreen> {
 
   @override
   void initState() {
-    // Timer mytimer = Timer.periodic(Duration(seconds: 1), (timer) {
-    //   DateTime timenow = DateTime.now(); //get current date and time
-    //   datetime = DateFormat("dd-MM-yyyy HH:mm:ss").format(timenow);
-    //   setState(() {});
-    //   //mytimer.cancel() //to terminate this timer
-    // });
+    Timer mytimer = Timer.periodic(Duration(seconds: 1), (timer) {
+      DateTime timenow = DateTime.now(); //get current date and time
+      datetime = DateFormat("dd-MM-yyyy HH:mm:ss").format(timenow);
+      setState(() {});
+      //mytimer.cancel() //to terminate this timer
+    });
     super.initState();
   }
 
@@ -180,7 +164,7 @@ class _CitiesScreenState extends State<CitiesScreen> {
                             Text(
                               '${widget.cities[index].weather.temp.round().toString()}ºC',
                               style: const TextStyle(
-                              color: Colors.white, fontSize: 21),
+                                  color: Colors.white, fontSize: 21),
                             ),
                             Text(
                               '${widget.cities[index].weather.status}',
@@ -209,7 +193,6 @@ class _CitiesScreenState extends State<CitiesScreen> {
                     );
                   }),
             ),
-
           ],
         ),
       ),
@@ -224,28 +207,34 @@ class DetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final city = ModalRoute.of(context)!.settings.arguments as City;
 
-    late Future<Weather> futureWeather;
-
-    futureWeather = fetchWeather(city.id);
+    city.get_weather();
+    var weather = city.weather;
+    var model;
+    if (weather.status == "Sol") {
+      model = "3d_assets/sun.glb";
+    } else if (weather.status == "Chuva") {
+      model = "3d_assets/rain.glb";
+    } else {
+      model = "3d_assets/cloud.glb";
+    }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Back"),
-      ),
-      body: FutureBuilder<Weather>(
-        future: futureWeather,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return Center(
-                child: Text(
-                    '${snapshot.data!.temp.round()}ºC\n${snapshot.data!.status}'));
-          } else if (snapshot.hasError) {
-            return Text('${snapshot.error} ');
-          }
-          // By default, show a loading spinner.
-          return const Center(child: CircularProgressIndicator());
-        },
-      ),
-    );
+        appBar: AppBar(
+          title: Text("Back"),
+        ),
+        body: Center(
+            child: Container(
+                child: Column(
+          children: [
+            Text('${weather.temp.round().toString()}ºC'),
+            Expanded(
+              child: ModelViewer(
+                src: model,
+                autoRotate: true,
+                disableZoom: true,
+              ),
+            )
+          ],
+        ))));
   }
 }
