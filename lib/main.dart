@@ -182,18 +182,99 @@ class _CitiesScreenState extends State<CitiesScreen> {
                           ],
                         ),
                         onTap: () {
-                          Navigator.push(
+                          // Navigator.push(
+                          //
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (context) => const DetailScreen(),
+                          //     // Pass the arguments as part of the RouteSettings. The
+                          //     // DetailScreen reads the arguments from these settings.
+                          //     settings: RouteSettings(
+                          //       arguments: widget.cities[index],
+                          //     ),
+                          //   ),
+                          // );
 
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const DetailScreen(),
-                              // Pass the arguments as part of the RouteSettings. The
-                              // DetailScreen reads the arguments from these settings.
-                              settings: RouteSettings(
-                                arguments: widget.cities[index],
+                          widget.cities[index].get_weather();
+                          var weather = widget.cities[index].weather;
+                          var model;
+                          if (weather.status == "Céu Limpo") {
+                            model = "3d_assets/sun.glb";
+                          } else if (weather.status == "Chuva") {
+                            model = "3d_assets/rain.glb";
+                          } else {
+                            model = "3d_assets/cloud.glb";
+                          }
+
+                          showDialog<String>(
+                            context: context,
+                            builder: (BuildContext context) => AlertDialog(
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    margin: const EdgeInsetsDirectional.only(bottom: 10),
+                                    child: Text(
+                                      widget.cities[index].name,
+                                      style: TextStyle(fontSize: 35),
+                                    ),
+                                  ),
+                                  Text(
+                                    '${weather.temp.round().toString()}º',
+                                    style: TextStyle(color: Colors.lightBlue, fontSize: 35),
+                                  ),
+                                  Container(
+                                    height: 250,
+                                    margin: EdgeInsetsDirectional.symmetric(horizontal: 15),
+                                    child: ModelViewer(
+                                      src: model,
+                                      autoRotate: true,
+                                      disableZoom: true,
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsetsDirectional.only(bottom: 2, top: 5),
+                                    child: Text(
+                                      weather.status,
+                                      style: TextStyle(color: Colors.grey, fontSize: 25),
+                                    ),
+                                  ),
+                                  Container(
+                                    margin: const EdgeInsetsDirectional.only(top: 20),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.wb_sunny_rounded),
+                                        Text(
+                                          weather.sunrise,
+                                          style: TextStyle(color: Colors.lightBlue, fontSize: 28),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.nightlight_round),
+                                      Text(
+                                        weather.sunset,
+                                        style: TextStyle(color: Colors.lightBlue, fontSize: 28),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
+                              // actions: <Widget>[
+                              //   TextButton(
+                              //     onPressed: () => Navigator.pop(context, 'OK'),
+                              //     child: const Text('OK'),
+                              //   ),
+                              // ],
                             ),
                           );
+
                         },
                       ),
                     );
