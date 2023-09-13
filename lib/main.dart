@@ -8,10 +8,14 @@ import 'package:model_viewer_plus/model_viewer_plus.dart';
 class Weather {
   final double temp;
   final String status;
+  final sunrise;
+  final sunset;
 
   const Weather({
     required this.temp,
     required this.status,
+    required this.sunrise,
+    required this.sunset,
   });
 
   factory Weather.fromJson(Map<String, dynamic> json) {
@@ -20,7 +24,7 @@ class Weather {
     switch (json['list'][0]['weather'][0]['main']) {
       case "Clear":
         {
-          s = "Sol";
+          s = "Céu Limpo";
         }
         break;
       case "Clouds":
@@ -43,6 +47,10 @@ class Weather {
     return Weather(
       temp: t,
       status: s,
+      sunrise: DateFormat("HH:mm").format(
+          DateTime.fromMillisecondsSinceEpoch(json['city']['sunrise'] * 1000)),
+      sunset: DateFormat("HH:mm").format(
+          DateTime.fromMillisecondsSinceEpoch(json['city']['sunset'] * 1000)),
     );
   }
 }
@@ -78,7 +86,7 @@ void main() {
       title: 'Passing Data',
       home: CitiesScreen(cities: <City>[
         City("Lisboa", 2267056),
-        City("Leira", 2267094),
+        City("Leiria", 2267094),
         City("Coimbra", 2740636),
         City("Porto", 2735941),
         City("Faro", 2268337)
@@ -105,7 +113,6 @@ class _CitiesScreenState extends State<CitiesScreen> {
       DateTime timenow = DateTime.now(); //get current date and time
       datetime = DateFormat("dd-MM-yyyy HH:mm:ss").format(timenow);
       setState(() {});
-      //mytimer.cancel() //to terminate this timer
     });
     super.initState();
   }
@@ -127,11 +134,12 @@ class _CitiesScreenState extends State<CitiesScreen> {
                 children: [
                   const Text(
                     "Cidades",
-                    style: TextStyle(color: Colors.black, fontSize: 25),
+                    style: TextStyle(fontSize: 25),
                   ),
                   Text(
                     datetime,
-                    style: const TextStyle(color: Colors.black, fontSize: 20),
+                    style: const TextStyle(
+                        fontSize: 20,),
                   )
                 ],
               ),
@@ -173,11 +181,9 @@ class _CitiesScreenState extends State<CitiesScreen> {
                             ),
                           ],
                         ),
-                        // When a user taps the ListTile, navigate to the DetailScreen.
-                        // Notice that you're not only creating a DetailScreen, you're
-                        // also passing the current todo through to it.
                         onTap: () {
                           Navigator.push(
+
                             context,
                             MaterialPageRoute(
                               builder: (context) => const DetailScreen(),
@@ -210,7 +216,7 @@ class DetailScreen extends StatelessWidget {
     city.get_weather();
     var weather = city.weather;
     var model;
-    if (weather.status == "Sol") {
+    if (weather.status == "Céu Limpo") {
       model = "3d_assets/sun.glb";
     } else if (weather.status == "Chuva") {
       model = "3d_assets/rain.glb";
@@ -220,20 +226,62 @@ class DetailScreen extends StatelessWidget {
 
     return Scaffold(
         appBar: AppBar(
-          title: Text("Back"),
+          title: Text("Cidades"),
         ),
         body: Center(
             child: Container(
                 child: Column(
           children: [
-            Text('${weather.temp.round().toString()}ºC'),
-            Expanded(
+            Container(
+              margin: const EdgeInsetsDirectional.only(top: 40),
+              child: Text(
+                city.name,
+                style: TextStyle(fontSize: 35),
+              ),
+            ),
+            Text(
+              '${weather.temp.round().toString()}º',
+              style: TextStyle(color: Colors.lightBlue, fontSize: 35),
+            ),
+            Container(
+              height: 250,
+              margin: EdgeInsetsDirectional.symmetric(horizontal: 15),
               child: ModelViewer(
                 src: model,
                 autoRotate: true,
                 disableZoom: true,
               ),
-            )
+            ),
+            Padding(
+              padding: EdgeInsetsDirectional.only(bottom: 2, top: 5),
+              child: Text(
+                weather.status,
+                style: TextStyle(color: Colors.grey, fontSize: 25),
+              ),
+            ),
+            Container(
+              margin: const EdgeInsetsDirectional.only(top: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.wb_sunny_rounded),
+                  Text(
+                    weather.sunrise,
+                    style: TextStyle(color: Colors.lightBlue, fontSize: 28),
+                  ),
+                ],
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.nightlight_round),
+                Text(
+                  weather.sunset,
+                  style: TextStyle(color: Colors.lightBlue, fontSize: 28),
+                ),
+              ],
+            ),
           ],
         ))));
   }
