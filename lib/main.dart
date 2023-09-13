@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:model_viewer_plus/model_viewer_plus.dart';
 
 Future<Weather> fetchWeather(city_id) async {
   final response = await http.get(Uri.parse(
@@ -65,13 +66,31 @@ class Weather {
 class City {
   final String name;
   final int id;
+  var weather;
 
-  const City(this.name, this.id);
+  City(this.name, this.id) {
+    get_weather();
+  }
+
+  void get_weather() async {
+    final response = await http.get(Uri.parse(
+        'http://api.openweathermap.org/data/2.5/forecast?id=$id&APPID=97f9f992f1fa553711ac1cc06e46524f'));
+
+    if (response.statusCode == 200) {
+      // If the server did return a 200 OK response,
+      // then parse the JSON.
+      weather = Weather.fromJson(jsonDecode(response.body));
+    } else {
+      // If the server did not return a 200 OK response,
+      // then throw an exception.
+      throw Exception('Failed to load weather');
+    }
+  }
 }
 
 void main() {
   runApp(
-    const MaterialApp(
+    MaterialApp(
       title: 'Passing Data',
       home: CitiesScreen(cities: <City>[
         City("Lisboa", 2267056),
@@ -98,12 +117,12 @@ class _CitiesScreenState extends State<CitiesScreen> {
 
   @override
   void initState() {
-    Timer mytimer = Timer.periodic(Duration(seconds: 1), (timer) {
-      DateTime timenow = DateTime.now(); //get current date and time
-      datetime = DateFormat("dd-MM-yyyy HH:mm:ss").format(timenow);
-      setState(() {});
-      //mytimer.cancel() //to terminate this timer
-    });
+    // Timer mytimer = Timer.periodic(Duration(seconds: 1), (timer) {
+    //   DateTime timenow = DateTime.now(); //get current date and time
+    //   datetime = DateFormat("dd-MM-yyyy HH:mm:ss").format(timenow);
+    //   setState(() {});
+    //   //mytimer.cancel() //to terminate this timer
+    // });
     super.initState();
   }
 
@@ -122,13 +141,13 @@ class _CitiesScreenState extends State<CitiesScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
+                  const Text(
                     "Cidades",
                     style: TextStyle(color: Colors.black, fontSize: 25),
                   ),
                   Text(
                     datetime,
-                    style: TextStyle(color: Colors.black, fontSize: 20),
+                    style: const TextStyle(color: Colors.black, fontSize: 20),
                   )
                 ],
               ),
@@ -139,7 +158,7 @@ class _CitiesScreenState extends State<CitiesScreen> {
                   itemCount: widget.cities.length,
                   itemBuilder: (context, index) {
                     return Card(
-                      margin: EdgeInsets.symmetric(vertical: 10),
+                      margin: const EdgeInsets.symmetric(vertical: 10),
                       color: Colors.blue,
                       elevation: 5,
                       shape: RoundedRectangleBorder(
@@ -147,12 +166,28 @@ class _CitiesScreenState extends State<CitiesScreen> {
                       ),
                       child: ListTile(
                         title: Container(
-                          margin: const EdgeInsetsDirectional.only(top: 20, bottom: 20, start: 15),
+                          margin: const EdgeInsetsDirectional.only(
+                              top: 20, bottom: 20, start: 15),
                           child: Text(
                             widget.cities[index].name,
                             style: const TextStyle(
                                 color: Colors.white, fontSize: 25),
                           ),
+                        ),
+                        trailing: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              '${widget.cities[index].weather.temp.round().toString()}ºC',
+                              style: const TextStyle(
+                              color: Colors.white, fontSize: 21),
+                            ),
+                            Text(
+                              '${widget.cities[index].weather.status}',
+                              style: const TextStyle(
+                                  color: Colors.white, fontSize: 18),
+                            ),
+                          ],
                         ),
                         // When a user taps the ListTile, navigate to the DetailScreen.
                         // Notice that you're not only creating a DetailScreen, you're
@@ -174,6 +209,7 @@ class _CitiesScreenState extends State<CitiesScreen> {
                     );
                   }),
             ),
+
           ],
         ),
       ),
@@ -194,25 +230,22 @@ class DetailScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(city.name),
+        title: Text("Back"),
       ),
-      body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: FutureBuilder<Weather>(
-            future: futureWeather,
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                return Center(
-                    child: Text(
-                        '${snapshot.data!.temp.round()}ºC\n${snapshot.data!.status}'));
-              } else if (snapshot.hasError) {
-                return Text('${snapshot.error} ');
-              }
-
-              // By default, show a loading spinner.
-              return const Center(child: CircularProgressIndicator());
-            },
-          )),
+      body: FutureBuilder<Weather>(
+        future: futureWeather,
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return Center(
+                child: Text(
+                    '${snapshot.data!.temp.round()}ºC\n${snapshot.data!.status}'));
+          } else if (snapshot.hasError) {
+            return Text('${snapshot.error} ');
+          }
+          // By default, show a loading spinner.
+          return const Center(child: CircularProgressIndicator());
+        },
+      ),
     );
   }
 }
