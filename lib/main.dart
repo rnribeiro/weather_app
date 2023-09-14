@@ -58,20 +58,18 @@ class Weather {
 class City {
   final String name;
   final int id;
-  var weather;
 
-  City(this.name, this.id) {
-    get_weather();
-  }
 
-  void get_weather() async {
+  City(this.name, this.id);
+
+  Future<Weather> get_weather() async {
     final response = await http.get(Uri.parse(
         'http://api.openweathermap.org/data/2.5/forecast?id=$id&APPID=97f9f992f1fa553711ac1cc06e46524f'));
 
     if (response.statusCode == 200) {
       // If the server did return a 200 OK response,
       // then parse the JSON.
-      weather = Weather.fromJson(jsonDecode(response.body));
+      return Weather.fromJson(jsonDecode(response.body));
     } else {
       // If the server did not return a 200 OK response,
       // then throw an exception.
@@ -95,27 +93,10 @@ void main() {
   );
 }
 
-class CitiesScreen extends StatefulWidget {
+class CitiesScreen extends StatelessWidget {
   const CitiesScreen({super.key, required this.cities});
 
   final List<City> cities;
-
-  @override
-  State<CitiesScreen> createState() => _CitiesScreenState();
-}
-
-class _CitiesScreenState extends State<CitiesScreen> {
-  String datetime = "";
-
-  @override
-  void initState() {
-    Timer mytimer = Timer.periodic(Duration(seconds: 1), (timer) {
-      DateTime timenow = DateTime.now(); //get current date and time
-      datetime = DateFormat("dd-MM-yyyy HH:mm:ss").format(timenow);
-      setState(() {});
-    });
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -136,149 +117,198 @@ class _CitiesScreenState extends State<CitiesScreen> {
                     "Cidades",
                     style: TextStyle(fontSize: 25),
                   ),
-                  Text(
-                    datetime,
-                    style: const TextStyle(
-                        fontSize: 20,),
+                  StreamBuilder(
+                    stream: Stream.periodic(const Duration(seconds: 1)),
+                    builder: (context, snapshot) {
+                      return Text(DateFormat('dd-MM-yyyy HH:mm:ss').format(DateTime.now()), style: const TextStyle(
+                               fontSize: 20,
+                             ));
+                    },
                   )
                 ],
               ),
             ),
             Expanded(
               child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: widget.cities.length,
-                  itemBuilder: (context, index) {
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 10),
-                      color: Colors.blue,
-                      elevation: 5,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
-                      ),
-                      child: ListTile(
-                        title: Container(
-                          margin: const EdgeInsetsDirectional.only(
-                              top: 20, bottom: 20, start: 15),
-                          child: Text(
-                            widget.cities[index].name,
-                            style: const TextStyle(
-                                color: Colors.white, fontSize: 25),
-                          ),
-                        ),
-                        trailing: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              '${widget.cities[index].weather.temp.round().toString()}ºC',
+                shrinkWrap: true,
+                itemCount: cities.length,
+                itemBuilder: (context, index) {
+                  return Card(
+                    margin: const EdgeInsets.symmetric(vertical: 10),
+                    color: Colors.blue,
+                    elevation: 5,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: FutureBuilder<Weather>(
+                      future: cities[index].get_weather(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          // Display a loading indicator while data is being fetched.
+                          return ListTile(
+                            title: Text(
+                              cities[index].name,
                               style: const TextStyle(
-                                  color: Colors.white, fontSize: 21),
+                                color: Colors.white,
+                                fontSize: 25,
+                              ),
                             ),
-                            Text(
-                              '${widget.cities[index].weather.status}',
+                            trailing: CircularProgressIndicator(),
+                          );
+                        } else if (snapshot.hasError) {
+                          // Handle the error case.
+                          return ListTile(
+                            title: Text(
+                              cities[index].name,
                               style: const TextStyle(
-                                  color: Colors.white, fontSize: 18),
+                                color: Colors.white,
+                                fontSize: 25,
+                              ),
                             ),
-                          ],
-                        ),
-                        onTap: () {
-                          // Navigator.push(
-                          //
-                          //   context,
-                          //   MaterialPageRoute(
-                          //     builder: (context) => const DetailScreen(),
-                          //     // Pass the arguments as part of the RouteSettings. The
-                          //     // DetailScreen reads the arguments from these settings.
-                          //     settings: RouteSettings(
-                          //       arguments: widget.cities[index],
-                          //     ),
-                          //   ),
-                          // );
+                            trailing: Text(
+                              'Error: ${snapshot.error}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                              ),
+                            ),
+                          );
+                        } else {
+                          // Data has been successfully fetched.
+                          final weather = snapshot.data!;
+                          return ListTile(
+                            title: Container(
+                              margin: const EdgeInsetsDirectional.only(
+                                top: 20,
+                                bottom: 20,
+                                start: 15,
+                              ),
+                              child: Text(
+                                cities[index].name,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 25,
+                                ),
+                              ),
+                            ),
+                            trailing: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  '${weather.temp.round().toString()}ºC',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 21,
+                                  ),
+                                ),
+                                Text(
+                                  '${weather.status}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            onTap: () {
+                              // Navigator.push(
+                              //
+                              //   context,
+                              //   MaterialPageRoute(
+                              //     builder: (context) => const DetailScreen(),
+                              //     // Pass the arguments as part of the RouteSettings. The
+                              //     // DetailScreen reads the arguments from these settings.
+                              //     settings: RouteSettings(
+                              //       arguments: cities[index],
+                              //     ),
+                              //   ),
+                              // );
 
-                          widget.cities[index].get_weather();
-                          var weather = widget.cities[index].weather;
-                          var model;
-                          if (weather.status == "Céu Limpo") {
-                            model = "3d_assets/sun.glb";
-                          } else if (weather.status == "Chuva") {
-                            model = "3d_assets/rain.glb";
-                          } else {
-                            model = "3d_assets/cloud.glb";
-                          }
+                              var model;
+                              if (weather.status == "Céu Limpo") {
+                                model = "3d_assets/sun.glb";
+                              } else if (weather.status == "Chuva") {
+                                model = "3d_assets/rain.glb";
+                              } else {
+                                model = "3d_assets/cloud.glb";
+                              }
 
-                          showDialog<String>(
-                            context: context,
-                            builder: (BuildContext context) => AlertDialog(
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                              showDialog<String>(
+                                context: context,
+                                builder: (BuildContext context) => AlertDialog(
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
 
-                              content: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    margin: const EdgeInsetsDirectional.only(bottom: 10),
-                                    child: Text(
-                                      widget.cities[index].name,
-                                      style: TextStyle(fontSize: 35),
-                                    ),
-                                  ),
-                                  Text(
-                                    '${weather.temp.round().toString()}º',
-                                    style: TextStyle(color: Colors.lightBlue, fontSize: 35),
-                                  ),
-                                  Container(
-                                    height: 250,
-                                    margin: EdgeInsetsDirectional.symmetric(horizontal: 15),
-                                    child: ModelViewer(
-                                      src: model,
-                                      autoRotate: true,
-                                      disableZoom: true,
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsetsDirectional.only(bottom: 2, top: 5),
-                                    child: Text(
-                                      weather.status,
-                                      style: TextStyle(color: Colors.grey, fontSize: 25),
-                                    ),
-                                  ),
-                                  Container(
-                                    margin: const EdgeInsetsDirectional.only(top: 20),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(Icons.wb_sunny_rounded),
-                                        Text(
-                                          weather.sunrise,
-                                          style: TextStyle(color: Colors.lightBlue, fontSize: 28),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
+                                  content: Column(
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(Icons.nightlight_round),
+                                      Container(
+                                        margin: const EdgeInsetsDirectional.only(bottom: 10),
+                                        child: Text(
+                                          cities[index].name,
+                                          style: TextStyle(fontSize: 35),
+                                        ),
+                                      ),
                                       Text(
-                                        weather.sunset,
-                                        style: TextStyle(color: Colors.lightBlue, fontSize: 28),
+                                        '${weather.temp.round().toString()}º',
+                                        style: TextStyle(color: Colors.lightBlue, fontSize: 35),
+                                      ),
+                                      Container(
+                                        height: 250,
+                                        margin: EdgeInsetsDirectional.symmetric(horizontal: 15),
+                                        child: ModelViewer(
+                                          src: model,
+                                          autoRotate: true,
+                                          disableZoom: true,
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsetsDirectional.only(bottom: 2, top: 5),
+                                        child: Text(
+                                          weather.status,
+                                          style: TextStyle(color: Colors.grey, fontSize: 25),
+                                        ),
+                                      ),
+                                      Container(
+                                        margin: const EdgeInsetsDirectional.only(top: 20),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(Icons.wb_sunny_rounded),
+                                            Text(
+                                              weather.sunrise,
+                                              style: TextStyle(color: Colors.lightBlue, fontSize: 28),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.nightlight_round),
+                                          Text(
+                                            weather.sunset,
+                                            style: TextStyle(color: Colors.lightBlue, fontSize: 28),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
-                                ],
-                              ),
-                              // actions: <Widget>[
-                              //   TextButton(
-                              //     onPressed: () => Navigator.pop(context, 'OK'),
-                              //     child: const Text('OK'),
-                              //   ),
-                              // ],
-                            ),
-                          );
+                                  // actions: <Widget>[
+                                  //   TextButton(
+                                  //     onPressed: () => Navigator.pop(context, 'OK'),
+                                  //     child: const Text('OK'),
+                                  //   ),
+                                  // ],
+                                ),
+                              );
 
-                        },
-                      ),
-                    );
-                  }),
+                            },
+                          );
+                        }
+                      },
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),
@@ -287,83 +317,4 @@ class _CitiesScreenState extends State<CitiesScreen> {
   }
 }
 
-class DetailScreen extends StatelessWidget {
-  const DetailScreen({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    final city = ModalRoute.of(context)!.settings.arguments as City;
-
-    city.get_weather();
-    var weather = city.weather;
-    var model;
-    if (weather.status == "Céu Limpo") {
-      model = "3d_assets/sun.glb";
-    } else if (weather.status == "Chuva") {
-      model = "3d_assets/rain.glb";
-    } else {
-      model = "3d_assets/cloud.glb";
-    }
-
-    return Scaffold(
-        appBar: AppBar(
-          title: Text("Cidades"),
-        ),
-        body: Center(
-            child: Container(
-                child: Column(
-          children: [
-            Container(
-              margin: const EdgeInsetsDirectional.only(top: 40),
-              child: Text(
-                city.name,
-                style: TextStyle(fontSize: 35),
-              ),
-            ),
-            Text(
-              '${weather.temp.round().toString()}º',
-              style: TextStyle(color: Colors.lightBlue, fontSize: 35),
-            ),
-            Container(
-              height: 250,
-              margin: EdgeInsetsDirectional.symmetric(horizontal: 15),
-              child: ModelViewer(
-                src: model,
-                autoRotate: true,
-                disableZoom: true,
-              ),
-            ),
-            Padding(
-              padding: EdgeInsetsDirectional.only(bottom: 2, top: 5),
-              child: Text(
-                weather.status,
-                style: TextStyle(color: Colors.grey, fontSize: 25),
-              ),
-            ),
-            Container(
-              margin: const EdgeInsetsDirectional.only(top: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.wb_sunny_rounded),
-                  Text(
-                    weather.sunrise,
-                    style: TextStyle(color: Colors.lightBlue, fontSize: 28),
-                  ),
-                ],
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.nightlight_round),
-                Text(
-                  weather.sunset,
-                  style: TextStyle(color: Colors.lightBlue, fontSize: 28),
-                ),
-              ],
-            ),
-          ],
-        ))));
-  }
-}
