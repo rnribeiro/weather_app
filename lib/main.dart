@@ -64,7 +64,7 @@ class City {
 
   Future<Weather> get_weather() async {
     final response = await http.get(Uri.parse(
-        'http://api.openweathermap.org/data/2.5/forecast?id=$id&APPID=97f9f992f1fa553711ac1cc06e46524f'));
+        'http://api.openweathermap.org/data/2.5/forecast?id=${id}&APPID=97f9f992f1fa553711ac1cc06e46524f'));
 
     if (response.statusCode == 200) {
       // If the server did return a 200 OK response,
@@ -161,7 +161,6 @@ class CitiesScreen extends StatelessWidget {
                                 color: Colors.white, strokeWidth: 4),
                           );
                         } else if (snapshot.hasError) {
-                          // Handle the error case.
                           return ListTile(
                             title: Text(
                               cities[index].name,
@@ -330,7 +329,7 @@ class CitiesScreen extends StatelessWidget {
                                                         weather.sunrise),
                                                     style: const TextStyle(
                                                         color: Colors.white,
-                                                        fontSize: 28),
+                                                        fontSize: 24),
                                                   ),
                                                 ],
                                               ),
@@ -351,7 +350,7 @@ class CitiesScreen extends StatelessWidget {
                                                         .format(weather.sunset),
                                                     style: const TextStyle(
                                                         color: Colors.white,
-                                                        fontSize: 28),
+                                                        fontSize: 24),
                                                   ),
                                                 ],
                                               ),
