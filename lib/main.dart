@@ -10,8 +10,8 @@ import 'package:model_viewer_plus/model_viewer_plus.dart';
 class Weather {
   final double temp;
   final String status;
-  final String sunrise;
-  final String sunset;
+  final DateTime sunrise;
+  final DateTime sunset;
 
   const Weather({
     required this.temp,
@@ -48,10 +48,10 @@ class Weather {
     return Weather(
       temp: t,
       status: s,
-      sunrise: DateFormat("HH:mm").format(
-          DateTime.fromMillisecondsSinceEpoch(json['city']['sunrise'] * 1000)),
-      sunset: DateFormat("HH:mm").format(
-          DateTime.fromMillisecondsSinceEpoch(json['city']['sunset'] * 1000)),
+      sunrise:
+      DateTime.fromMillisecondsSinceEpoch(json['city']['sunrise'] * 1000),
+      sunset:
+      DateTime.fromMillisecondsSinceEpoch(json['city']['sunset'] * 1000),
     );
   }
 }
@@ -216,106 +216,164 @@ class CitiesScreen extends StatelessWidget {
                             ),
                             onTap: () {
                               String model;
-                              if (weather.status == "Céu Limpo") {
-                                model = "3d_assets/sun.glb";
-                              } else if (weather.status == "Chuva") {
-                                model = "3d_assets/rain.glb";
-                              } else {
-                                model = "3d_assets/cloud.glb";
+                              List<Color> day_colors = [
+                                const Color(0xe581D4FA),
+                                const Color(0xff2196f3)
+                              ];
+                              List<Color> night_colors = [
+                                const Color(0xff004187),
+                                const Color(0xff001B47)
+                              ];
+                              // List<Color> grey_colors = [const Color(0xff424242), const Color(0xffcfd8dc)];
+                              List<Color> gradient = night_colors;
+                              bool is_sun_up = false;
+                              if (DateTime.now().isAfter(weather.sunrise) &&
+                                  DateTime.now().isBefore(weather.sunset)) {
+                                is_sun_up = true;
+                                gradient = day_colors;
                               }
+
+                              if (weather.status == "Céu Limpo" && is_sun_up) {
+                                model = "3d_assets/sun.glb";
+                              } else
+                              if (weather.status == "Céu Limpo" && !is_sun_up) {
+                                model = "3d_assets/moon.glb";
+                              }if (weather.status == "Nublado" && is_sun_up) {
+                                model = "3d_assets/sunny_cloud.glb";
+                              } else
+                              if (weather.status == "Nublado" && !is_sun_up) {
+                                model = "3d_assets/cloud.glb";
+                              } else {
+                                model = "3d_assets/rain.glb";
+                              }
+
 
                               showDialog<String>(
                                 context: context,
-                                builder: (BuildContext context) => AlertDialog(
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(18)),
+                                builder: (BuildContext context) =>
+                                    AlertDialog(
+                                      contentPadding: const EdgeInsets.all(0),
 
-                                  content: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Container(
-                                        margin:
-                                            const EdgeInsetsDirectional.only(
-                                                bottom: 10),
-                                        child: Text(
-                                          cities[index].name,
-                                          style: const TextStyle(fontSize: 35),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                              18)),
+
+                                      content: Container(
+                                        margin: const EdgeInsets.all(0),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                              18),
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: gradient,
+                                          ),
                                         ),
-                                      ),
-                                      Text(
-                                        '${weather.temp.round().toString()}º',
-                                        style: const TextStyle(
-                                            color: Colors.lightBlue,
-                                            fontSize: 35),
-                                      ),
-                                      Container(
-                                        height: 250,
-                                        margin: const EdgeInsetsDirectional
-                                            .symmetric(horizontal: 15),
-                                        child: ModelViewer(
-                                          src: model,
-                                          autoRotate: true,
-                                          disableZoom: true,
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding:
-                                            const EdgeInsetsDirectional.only(
-                                                bottom: 2, top: 5),
-                                        child: Text(
-                                          weather.status,
-                                          style: const TextStyle(
-                                              color: Colors.grey, fontSize: 25),
-                                        ),
-                                      ),
-                                      Container(
-                                        margin:
-                                            const EdgeInsetsDirectional.only(
-                                                top: 20),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
+
+                                        child: Column(
+
+                                          mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            const Icon(Icons.wb_sunny_rounded),
+                                            Container(
+                                              margin:
+                                              const EdgeInsetsDirectional.only(
+                                                  bottom: 10, top: 30),
+                                              child: Text(
+                                                cities[index].name,
+                                                style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 35),
+                                              ),
+                                            ),
                                             Text(
-                                              weather.sunrise,
+                                              '${weather.temp.round()
+                                                  .toString()}º',
                                               style: const TextStyle(
-                                                  color: Colors.lightBlue,
-                                                  fontSize: 28),
+                                                  color: Colors.white,
+                                                  fontSize: 35),
+                                            ),
+                                            Container(
+                                              height: 250,
+                                              margin: const EdgeInsetsDirectional
+                                                  .symmetric(horizontal: 15),
+                                              child: ModelViewer(
+                                                src: model,
+                                                autoRotate: true,
+                                                disableZoom: true,
+                                              ),
+                                            ),
+                                            Padding(
+                                              padding:
+                                              const EdgeInsetsDirectional.only(
+                                                  bottom: 2, top: 5),
+                                              child: Text(
+                                                weather.status,
+                                                style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 25),
+                                              ),
+                                            ),
+                                            Container(
+                                              margin:
+                                              const EdgeInsetsDirectional.only(
+                                                  top: 20),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                                children: [
+                                                  const Icon(
+                                                      Icons.wb_sunny_rounded,
+                                                      color: Colors.white),
+                                                  Text(
+                                                    DateFormat('HH:mm')
+                                                        .format(
+                                                        weather.sunrise),
+                                                    style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 28),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            Container(
+                                              margin:
+                                              const EdgeInsetsDirectional.only(
+                                                  bottom: 30),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                                children: [
+                                                  const Icon(
+                                                      Icons.nightlight_round,
+                                                      color: Colors.white),
+                                                  Text(
+                                                    DateFormat('HH:mm')
+                                                        .format(weather.sunset),
+                                                    style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 28),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
                                           ],
                                         ),
                                       ),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          const Icon(Icons.nightlight_round),
-                                          Text(
-                                            weather.sunset,
-                                            style: const TextStyle(
-                                                color: Colors.lightBlue,
-                                                fontSize: 28),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                  // actions: <Widget>[
-                                  //   TextButton(
-                                  //
-                                  //     onPressed: () => Navigator.pop(context, 'OK'),
-                                  //     child:
-                                  //     const Text(
-                                  //       'Fechar',
-                                  //       style: TextStyle(
-                                  //           color: Colors.grey,
-                                  //           fontSize: 18
-                                  //       ),
-                                  //     ),
-                                  //   ),
-                                  // ],
-                                ),
+                                      // actions: <Widget>[
+                                      //   TextButton(
+                                      //
+                                      //     onPressed: () => Navigator.pop(context, 'OK'),
+                                      //     child:
+                                      //     const Text(
+                                      //       'Fechar',
+                                      //       style: TextStyle(
+                                      //           color: Colors.grey,
+                                      //           fontSize: 18
+                                      //       ),
+                                      //     ),
+                                      //   ),
+                                      // ],
+                                    ),
                               );
                             },
                           );
