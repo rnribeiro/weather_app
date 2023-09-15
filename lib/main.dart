@@ -49,9 +49,9 @@ class Weather {
       temp: t,
       status: s,
       sunrise:
-      DateTime.fromMillisecondsSinceEpoch(json['city']['sunrise'] * 1000),
+          DateTime.fromMillisecondsSinceEpoch(json['city']['sunrise'] * 1000),
       sunset:
-      DateTime.fromMillisecondsSinceEpoch(json['city']['sunset'] * 1000),
+          DateTime.fromMillisecondsSinceEpoch(json['city']['sunset'] * 1000),
     );
   }
 }
@@ -234,145 +234,141 @@ class CitiesScreen extends StatelessWidget {
 
                               if (weather.status == "Céu Limpo" && is_sun_up) {
                                 model = "3d_assets/sun.glb";
-                              } else
-                              if (weather.status == "Céu Limpo" && !is_sun_up) {
+                              } else if (weather.status == "Céu Limpo" &&
+                                  !is_sun_up) {
                                 model = "3d_assets/moon.glb";
-                              }if (weather.status == "Nublado" && is_sun_up) {
+                              }
+                              if (weather.status == "Nublado" && is_sun_up) {
                                 model = "3d_assets/sunny_cloud.glb";
-                              } else
-                              if (weather.status == "Nublado" && !is_sun_up) {
+                              } else if (weather.status == "Nublado" &&
+                                  !is_sun_up) {
                                 model = "3d_assets/cloud.glb";
                               } else {
                                 model = "3d_assets/rain.glb";
                               }
 
-
                               showDialog<String>(
                                 context: context,
-                                builder: (BuildContext context) =>
-                                    AlertDialog(
-                                      contentPadding: const EdgeInsets.all(0),
-
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                              18)),
-
-                                      content: Container(
-                                        margin: const EdgeInsets.all(0),
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(
-                                              18),
-                                          gradient: LinearGradient(
-                                            begin: Alignment.topCenter,
-                                            end: Alignment.bottomCenter,
-                                            colors: gradient,
-                                          ),
-                                        ),
-
-                                        child: Column(
-
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Container(
-                                              margin:
+                                builder: (BuildContext context) => AlertDialog(
+                                  contentPadding: const EdgeInsets.all(0),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(18)),
+                                  content: Container(
+                                    margin: const EdgeInsets.all(0),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(18),
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: gradient,
+                                      ),
+                                    ),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          margin:
                                               const EdgeInsetsDirectional.only(
                                                   bottom: 10, top: 30),
-                                              child: Text(
-                                                cities[index].name,
-                                                style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 35),
-                                              ),
-                                            ),
-                                            Text(
-                                              '${weather.temp.round()
-                                                  .toString()}º',
-                                              style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 35),
-                                            ),
-                                            Container(
-                                              height: 250,
-                                              margin: const EdgeInsetsDirectional
-                                                  .symmetric(horizontal: 15),
-                                              child: ModelViewer(
-                                                src: model,
-                                                autoRotate: true,
-                                                disableZoom: true,
-                                              ),
-                                            ),
-                                            Padding(
-                                              padding:
+                                          child: Text(
+                                            cities[index].name,
+                                            style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 35),
+                                          ),
+                                        ),
+                                        Text(
+                                          '${weather.temp.round().toString()}º',
+                                          style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 35),
+                                        ),
+                                        Container(
+                                          height: 250,
+                                          margin: const EdgeInsetsDirectional
+                                              .symmetric(horizontal: 15),
+                                          child: ModelViewer(
+                                            src: model,
+                                            autoRotate: true,
+                                            disableZoom: true,
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding:
                                               const EdgeInsetsDirectional.only(
                                                   bottom: 2, top: 5),
-                                              child: Text(
-                                                weather.status,
-                                                style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 25),
-                                              ),
-                                            ),
-                                            Container(
-                                              margin:
+                                          child: Text(
+                                            weather.status,
+                                            style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 25),
+                                          ),
+                                        ),
+                                        Container(
+                                          margin:
                                               const EdgeInsetsDirectional.only(
                                                   top: 20),
-                                              child: Row(
-                                                mainAxisAlignment:
+                                          child: Row(
+                                            mainAxisAlignment:
                                                 MainAxisAlignment.center,
-                                                children: [
-                                                  const Icon(
-                                                      Icons.wb_sunny_rounded,
-                                                      color: Colors.white),
-                                                  Text(
-                                                    DateFormat('HH:mm')
-                                                        .format(
-                                                        weather.sunrise),
-                                                    style: const TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 24),
-                                                  ),
-                                                ],
+                                            children: [
+                                              const Icon(Icons.wb_sunny_rounded,
+                                                  color: Colors.white),
+                                              Text(
+                                                DateFormat('HH:mm')
+                                                    .format(weather.sunrise),
+                                                style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 24),
                                               ),
-                                            ),
-                                            Container(
-                                              margin:
-                                              const EdgeInsetsDirectional.only(
-                                                  bottom: 30),
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                                children: [
-                                                  const Icon(
-                                                      Icons.nightlight_round,
-                                                      color: Colors.white),
-                                                  Text(
-                                                    DateFormat('HH:mm')
-                                                        .format(weather.sunset),
-                                                    style: const TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 24),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                      // actions: <Widget>[
-                                      //   TextButton(
-                                      //
-                                      //     onPressed: () => Navigator.pop(context, 'OK'),
-                                      //     child:
-                                      //     const Text(
-                                      //       'Fechar',
-                                      //       style: TextStyle(
-                                      //           color: Colors.grey,
-                                      //           fontSize: 18
-                                      //       ),
-                                      //     ),
-                                      //   ),
-                                      // ],
+                                        Container(
+                                          margin:
+                                              const EdgeInsetsDirectional.only(
+                                                  bottom: 10),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              const Icon(Icons.nightlight_round,
+                                                  color: Colors.white),
+                                              Text(
+                                                DateFormat('HH:mm')
+                                                    .format(weather.sunset),
+                                                style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 24),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Container(
+                                          margin:
+                                              const EdgeInsetsDirectional.only(
+                                                  bottom: 15),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(
+                                                    context, 'OK'),
+                                                child: const Text(
+                                                  'Fechar',
+                                                  style: TextStyle(
+                                                      color: Colors.white70,
+                                                      fontSize: 18),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
                                     ),
+                                  ),
+                                ),
                               );
                             },
                           );
